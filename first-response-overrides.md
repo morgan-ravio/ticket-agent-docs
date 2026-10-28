@@ -1,114 +1,106 @@
-# First response playbook: Exclusions
+# First response playbook: Overrides
 
-Request type: **Exclusions** (HubSpot internal value `Contractor/Exclusions`). Owner: Product Support. Covers **both exclusions and inclusions**.
+Request type: **Overrides** (HubSpot internal value `Overrides`). Owner: Product Support.
 
-This playbook is context for the First Response Agent. The customer reads the email you draft. Recognise what we already know, then ask only for what Product Support can't find itself. Support usually applies these rules straight away from the raw data, so most tickets need no email.
+This playbook is context for the First Response Agent. The customer reads the email you draft. Recognise what we already know, then ask only for what Product Support can't find itself.
+
+An override means: "when a field has value X, show Y in Ravio instead". It sits on Ravio's side, so it **doesn't update when the customer later fixes their HR system**. That's why we use it only when the data can't be fixed at source or by reading a different field.
+
+Note: **Override Threshold Breach** tickets are internal alerts, not customer requests. Never draft a customer email for them.
 
 ## How to use this playbook
 
 - Read the SUPPORT CONTEXT block first: who raised the ticket, the latest message, the data source, and whether Ravio has already replied.
 - Then decide, in this order: skip (see the system prompt), enough context to resolve (no email), or draft.
-- **Raised by a Ravio colleague** (CSM or Support) on the customer's behalf: still write to the customer, but treat the colleague's description as information we already have. If the colleague has given the rule, it's enough context.
-- **Examples, not IDs:** when you need people identified, ask for examples and don't specify how (ID, name or screenshot are all fine). If people are already identified, don't ask for more. Support looks them up. Never repeat names back.
-- **Customer questions** (for example "when will leavers drop off?"): put them in `customer_questions`. Don't answer them and don't turn them into a question back.
-- Usually one or two questions. Never more than five.
+- **Raised by a Ravio colleague** (most Overrides tickets are): still write to the customer, but treat the colleague's instruction as information we already have. Never turn it into a question back. If the colleague wrote "remove the overrides", don't ask "which overrides would you like removed?". A complete instruction from a colleague is enough context: no email.
+- **Examples, not IDs:** when you need people identified, ask for examples and don't specify how (ID, name or screenshot are all fine). If people are already named, don't ask. Support finds them. Never repeat names back.
+- **Customer questions** (for example "why is this showing USA?"): put them in `customer_questions`. Don't answer them and don't turn them into a question back.
+- Usually two or three questions. Never more than five.
 - Never diagnose, never admit fault, never give a timeline.
 - UK English. No em dashes. Plain language.
 
 ## What this request type covers
 
-Controlling **which employees are visible** in the customer's Ravio account:
-
-- **Exclusions:** hide a group (for example contractors, interns, founders, a legal entity, a country) or specific people (for example test or shared accounts).
-- **Inclusions:** show people who are currently hidden, for example contractors, interns, or one person carved out of a broader rule.
-- **Leaver timing:** "remove leavers immediately" is an account-wide setting, not a rule per person.
-- **Staff on leave:** usually the account's on-leave visibility setting, not a field rule.
-- **"Why is this person still showing / missing?"** questions about visibility.
-
-Rules are based on a field and a value (for example Employment Type = "Contractor"). Once set, a rule also applies to future employees who match it.
+- **Changing a value**, for one person, a list of people, or everyone with a given value. Common examples:
+  - location (for example "everyone in 'Netherlands' should show as Amsterdam", or "'Remote – Germany' should show as Germany"),
+  - FTE (full-time equivalent) or salary inputs for specific employees,
+  - a default for blank values (for example a currency where none is set),
+  - a single person's job title.
+- **Removing existing overrides**, for example after the customer has fixed their HR system or added a new field.
 
 ## When it's really a different request type
 
 Note this in your reasoning. If the type is clearly wrong, set `skip_reason` = `wrong_type` and name the right type in `reasoning`.
 
-- **The value itself is wrong** (someone's employment type or location is incorrect): Update Field Mapping or Overrides.
-- **Employees missing for another reason** (not started yet, data out of date): Ravio Data Issue.
-- **The same person appears twice**: Duplicates.
-- **Login or user access problems**: User Access Issue.
-
-Some questions need no change, because the behaviour is by design:
-
-- **Leavers stay visible for two weeks** after their leaving date.
-- **Future joiners** are visible before their start date.
-- **Contractors, interns and students are hidden by default** for most accounts.
+- **The correct value already exists in another field**: Update Field Mapping. This is often the better fix.
+- **Hiding or showing people**: Exclusions.
+- **Salary scaling for part-timers, pay periods or holiday allowance**: Pay Annualisation.
+- **Unexpected level or position overrides** ("hundreds of overrides we didn't set", people stuck on old levels after a framework change): levelling, not data adjustments. Ask nothing; usually no email.
+- **Job titles mapping to the wrong Ravio position**: role mapping or the correlation table.
+- **An error message or the app not working**: a bug. Ask only for the steps, the page and a screenshot. Never ask for console logs.
+- **Data wrong for an unknown reason**: Ravio Data Issue.
 
 ## Things Support can look up itself – never ask
 
 - The company, tenant, HR system and data source.
-- The values in the raw data, including job titles, levels, employment types and lifecycle or leave statuses.
-- Existing exclusion and inclusion rules, default exclusions and visibility settings.
-- Each employee's ID, country, level, job title, type, dates and visibility.
-- Headcount before and after a rule.
-- Whether leavers are still inside the two-week window.
-- Any rule we set up for this customer before (check the recent tickets line).
-
-We see the fields the integration shares with us, but not always under the name the customer sees in their HR system. If the customer quotes a value, that's usually enough for Support to find the field. Ask for the field name only in the case described in item 2 below.
+- **The value currently in Ravio** for any field and employee. Support copies the exact current value itself.
+- Current location, country, job title, level, FTE, salary and currency for any employee.
+- Existing overrides and what they change.
+- Employee IDs for people the customer has named.
+- Which field we currently read, and earlier adjustments for this customer (check the recent tickets line).
 
 ## Information we need
 
 ### Must have
 
-1. **Direction: hide or show**, only if the wording is ambiguous (for example "sort out our contractors").
-   - Ask: "Would you like these employees hidden from Ravio, or made visible?"
-2. **How they identify the group, only if it can't be inferred.** If they quote a value (with or without a field), or name a standard group (contractors, interns, students, leavers, people on leave), don't ask. Ask only when the group is non-standard ("shared accounts", "board members") **and** no names or screenshots were given.
-   - Ask: "How can we identify these employees? For example a value in a field such as Employment Type, and the field's name as it appears in your HR system."
-3. **Specific people:** ask who they are only if they haven't named or shown them.
-4. **One example, only when the problem is "someone is still showing" or "someone is still missing".** Don't ask for examples to test a clear field = value rule.
-   - Ask: "Could you share an example of someone who is still showing?"
+1. **Which field is wrong in Ravio**, in plain terms, if it isn't clear.
+   - Ask: "Which information is showing incorrectly in Ravio?"
+2. **The value it should be.** We can see the current value. For locations, a country is enough for country-level benchmarking. Ask for a city only if they named an ambiguous city, or want city-level benchmarking without saying which city.
+   - Ask: "What should it show instead?"
+3. **Who it applies to**, if it isn't clear: specific people (examples, unless already named) or everyone who has a particular value.
+   - Ask: "Should this apply to specific employees, or to everyone who currently shows that value?"
+4. **Whether the value can be corrected in their HR system.** Only ask if the ticket gives no sign either way. Skip if they've said it must stay as it is (tied to payroll, or a contractor platform such as Deel).
+   - Ask: "Is the value correct in your HR system? If not, would you be able to update it there, or does it need to stay as it is?"
+5. **For removals: which adjustments to remove.** Skip if they or a colleague have already said.
+   - Ask: "Which adjustments would you like removed: all of them, those for a particular field, or those for specific employees?"
 
 ### Helpful if missing
 
-5. **Exceptions**, only if the customer hints at them (for example "all contractors except the UK").
-6. **Neighbouring values**: for a status field with several values, ask which others should also be shown or hidden.
-   - Ask: "Should anyone on garden leave, or future hires, also be shown?"
-7. **Whether a keyword match is enough**, when they describe a pattern rather than an exact value (for example "any job title containing 'Student'").
-8. **Confirmation the field is filled in and visible to Ravio**, only when the customer says the field is new or custom.
-   - Ask: "As this field is new, could you check it's filled in and that the account connected to Ravio has permission to see it?"
+6. **Whether it's temporary**, for example until they update their HR system next quarter.
+7. **Whether the rule should also apply to future employees** with the same value (rule-based requests only, and only if unclear).
+8. **For FTE or salary inputs:** the FTE % or hours, and whether the figure is monthly or annual, if not given.
 
 ### Extra questions by scenario
 
-- **Staff on leave missing:** ask only which leave types should be visible. No examples needed: it's usually a setting.
-- **Leavers still showing:** ask nothing. If they ask when leavers disappear, add it to `customer_questions`. Ask only whether they want leavers hidden straight away, if that's unclear.
-- **"Exclude contractors" when contractors are hidden by default:** the real issue is usually that some still show. Ask for one example still visible.
-- **Fields that come through blank, or only Active/Inactive:** ask them to fill the field and check Ravio can see it.
-- **One person to include or exclude:** nothing more is needed once they've identified the person and the direction.
-- **Several groups at once:** ask only about the groups whose value can't be inferred.
+- **Location:** ask for the target country (and a city only if needed) and whether it applies to everyone with that value. Ask whether the field is reliable for everyone only for rule-based requests.
+- **Single person's value:** who the person is (if not already given), the field and the target value.
+- **"The adjustment isn't working":** ask for one example where it's not showing correctly, if none given.
+- **Removal after an HR system fix:** ask which field was fixed, if not given.
 
 ## Enough context to resolve
 
-Don't draft an email when they name the group by a value (a field value, a list of job titles or levels, a list of names or accounts), or ask to show or hide a standard group. Examples, headcounts and "ongoing or one-off" aren't needed. "Please exclude everyone where Employment Type = Contractor" can be actioned directly.
+Don't draft an email when the ticket has the field and the desired value, plus who it applies to (named people, examples or "everyone with value X"). For rule-based requests, there should be no open question about fixing the HR system instead. For removals: a clear statement of which adjustments to remove. Also don't draft for unexplained level or position overrides.
 
 ## Customer-facing guidance
 
 ### Safe to say
 
-- Visibility rules apply to future employees who match them, so new starters in the group are handled automatically.
-- Leavers remain visible for two weeks after their leaving date.
-- Contractors and interns are hidden by default for most accounts.
+- A manual adjustment on our side won't pick up later changes in your HR system. If you correct the data there later, let us know and we'll remove the adjustment.
+- Where possible, fixing the value in your HR system is the most reliable option, because Ravio always reflects it.
 
 ### Never say or promise
 
-- A timeframe ("within the hour", "by tomorrow"). Changes go through a data refresh.
-- That a combination of conditions is impossible. Let Product Support confirm.
-- That they can change these settings themselves in Ravio.
+- That an override is the default or best fix.
+- A date or timeframe.
+- That any field can be adjusted. Some (for example variable pay) need extra work and may not be possible.
 - Any cause, or that anything is our fault.
-- Internal names: tools, databases, rule tables or internal field names.
+- Internal names: tools, databases, tables, "processed fields" or internal field names.
 
 ### Privacy
 
-Ask for an example, not lists. Don't ask for lists of names or exports. Never repeat names back in the email.
+Ask for examples, not lists. Don't ask for exported lists of employees with salaries. Never repeat names back in the email.
 
 ## Example of a good "information missing" list
 
-- Whether these people should be hidden or shown (if unclear)
-- For status fields: which other values should also be shown or hidden
+- What it should show instead (for locations, the country, or the city and country for city level)
+- Whether this applies to specific employees or everyone with that value
